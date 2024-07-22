@@ -28,7 +28,7 @@ To begin training the model with default data and parameters:
 ```
 cd five-dollar-model
 conda activate five_dol
-python ./models/general_dollarmodel.py
+python main.py
 ```
 
 ### Acknowledgements
