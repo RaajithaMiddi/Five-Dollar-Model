@@ -2,6 +2,36 @@
 
 Modification to this project for GeorgiaTech DL final project. Includes using novel datasets for new sprite generation and experiments of model architecture or configuration.
 
+## Getting Started
+
+### Prerequisites
+
+Requires GraphViz
+
+- https://graphviz.gitlab.io/download/
+
+Installation uses [anaconda](https://www.anaconda.com/download), but could easily use another venv (poetry?) to create the project with the environment.yml
+
+### Installation
+
+```
+git clone git@github.com:penelopeia/five-dollar-model.git
+cd five-dollar-model
+conda env create -f environment.yml
+conda activate five_dol
+```
+
+### Usage
+
+To begin training the model with default data and parameters:
+
+```
+cd five-dollar-model
+conda activate five_dol
+python ./models/general_dollarmodel.py
+```
+
+### Acknowledgements
 
 ## The Five-Dollar Model: Generating Game Maps and Sprites from Sentence Embeddings
 
