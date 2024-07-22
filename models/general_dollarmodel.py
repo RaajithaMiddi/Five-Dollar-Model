@@ -180,7 +180,7 @@ class DollarModel():
 
     # export the model to a path
     def exportModel(self, path):
-        self.generator.save(path)
+        self.generator.save(path + ".keras")
 
     def render_images(self, images, labels, title, save_path, embeddings=None, correct_images=None):
         num_images = len(images)

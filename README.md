@@ -1,4 +1,9 @@
-# The Five-Dollar Model: Generating Game Maps and Sprites from Sentence Embeddings
+# Forked Five-Dollar Model
+
+Modification to this project for GeorgiaTech DL final project. Includes using novel datasets for new sprite generation and experiments of model architecture or configuration.
+
+
+## The Five-Dollar Model: Generating Game Maps and Sprites from Sentence Embeddings
 
 ### Timothy Merino, Roman Negri, Dipika Rajesh, M Charity, Julian Togelius
 

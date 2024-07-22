@@ -1,0 +1,14 @@
+name: five_dol
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - keras==3.4.1
+  - matplotlib==3.8.2
+  - numpy==1.26.2
+  - pillow==10.2.0
+  - pydot==2.0.0
+  - pydot-ng==2.0.0
+  - scikit-learn==1.5.1
+  - tensorflow==2.16.2
