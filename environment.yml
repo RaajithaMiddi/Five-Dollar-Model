@@ -12,3 +12,4 @@ dependencies:
   - pydot-ng==2.0.0
   - scikit-learn==1.5.1
   - tensorflow==2.16.2
+  - tqdm==4.66.4

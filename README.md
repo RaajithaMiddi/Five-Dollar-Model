@@ -31,6 +31,10 @@ conda activate five_dol
 python main.py
 ```
 
+### Data Processing
+
+TBD
+
 ### Acknowledgements
 
 ## The Five-Dollar Model: Generating Game Maps and Sprites from Sentence Embeddings
