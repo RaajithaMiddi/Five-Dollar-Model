@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-from enum import IntEnum
 
 torch.manual_seed(42)
 
