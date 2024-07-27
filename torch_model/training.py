@@ -9,7 +9,7 @@ from PIL import Image
 from torch_model import Generator
 from load_data import load_data
 from utils import decode_image_batch, image_grid
-
+from visualization import plot_loss_acc
 
 
 class GeneratorModule(nn.Module):
@@ -53,6 +53,7 @@ class GeneratorModule(nn.Module):
         image_classes = images.argmax(dim=-1)
         loss = self.loss_fn(torch.log(pred_out), image_classes)
         results_grid.save(os.path.join("debug_images", f"results_epoch_{epoch}.png"))
+        return loss
 
 def train(EPOCHS, batch_size, lr, device):
 
@@ -60,7 +61,8 @@ def train(EPOCHS, batch_size, lr, device):
 
     model = GeneratorModule(device, Generator(device), palette)
 
-    loss_metric_train = torch.zeros(EPOCHS).to(device)
+    train_loss = []
+    eval_loss = []
 
     model.to(device)
 
@@ -68,11 +70,12 @@ def train(EPOCHS, batch_size, lr, device):
     scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=0)
     for epoch in tqdm(range(EPOCHS), desc ="Training on epoch"):
 
+        batch_loss = 0
         for j, batch in enumerate(train_set):
             optimizer.zero_grad()
 
             loss = model.training_step(batch)
-            loss_metric_train[epoch] += loss
+            batch_loss += loss.item()
 
             loss.backward()
             grads = [
@@ -90,19 +93,23 @@ def train(EPOCHS, batch_size, lr, device):
             )
             optimizer.step()
             scheduler.step()
+        train_loss.append(batch_loss/batch_size)
 
         eval_every = 5
         if epoch % eval_every == 0:
             for j, batch in enumerate(test_set):
                 print("Running eval..")
-                model.eval_step(batch, epoch)
+                val_loss = model.eval_step(batch, epoch)
+                eval_loss.append(val_loss.item())
                 break
+
+    plot_loss_acc(train_loss, eval_loss)
 
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using {device} device...")
 
-    epochs = 2 # 100
+    epochs = 100
     batch_size = 256
     lr = 0.0005
     train(epochs, batch_size, lr, device)
