@@ -103,6 +103,7 @@ def train(EPOCHS, batch_size, lr, device):
                 eval_loss.append(val_loss.item())
                 break
 
+    torch.save(model.state_dict(), "five_dollar_model.pt")
     plot_loss_acc(train_loss, eval_loss)
 
 if __name__ == "__main__":
