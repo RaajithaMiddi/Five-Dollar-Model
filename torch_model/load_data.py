@@ -59,7 +59,7 @@ class ImageDataset(TensorDataset):
         return super().__getitem__(idx)
 
 
-def load_data(path, batch_size, train_size=0.9):
+def load_data(path, batch_size, train_size=0.9, num_workers=0):
     """
     Load data from raw data path.
 
@@ -83,14 +83,14 @@ def load_data(path, batch_size, train_size=0.9):
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True
     )
     test_set = DataLoader(
         test_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True
     )
 
