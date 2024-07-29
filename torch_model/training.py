@@ -1,7 +1,6 @@
 import os
 
 import torch
-from PIL import Image
 from torch import nn, optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
@@ -14,14 +13,14 @@ from visualization import plot_loss_acc
 
 class GeneratorModule(nn.Module):
     def __init__(
-            self, device: torch.device, generator: Generator, palette: Image.Image
+            self, device: torch.device, generator: Generator, palette: torch.Tensor
     ):
         super().__init__()
         self.device = device
         self.generator = generator.to(device)
         self.loss_fn = torch.nn.NLLLoss()
         self.results_table = None
-        self.palette = palette
+        self.palette = palette.to(device)
 
     # have to generate embeddings here as otherwise we cannot run the sentence transformer
     # on the GPU
@@ -54,8 +53,7 @@ class GeneratorModule(nn.Module):
         image_classes = images.argmax(dim=-1)
         loss = self.loss_fn(torch.log(pred_out), image_classes)
         # acc = torch.sum(pred_out == image_classes).item() / len(image_classes)
-        if os.path.exists("debug_images") is False:
-            os.makedirs("debug_images")
+
         results_grid.save(os.path.join("debug_images", f"results_epoch_{epoch}.png"))
         return loss  # , acc
 

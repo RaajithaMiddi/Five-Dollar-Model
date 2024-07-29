@@ -41,9 +41,10 @@ class ImageDataset(TensorDataset):
         :return: ndarray of RGB tuples in np.uint8 format
         """
         if palette_rgb is not None:
-            return np.asarray(palette_rgb, dtype=np.uint8)
+            return torch.tensor(palette_rgb, dtype=torch.uint8)
 
-        return np.asarray([self._hex_to_rgb(color) for color in palette_hex], dtype=np.uint8)
+        palette = np.asarray([self._hex_to_rgb(color) for color in palette_hex], dtype=np.uint8)
+        return torch.from_numpy(palette)
 
     def __len__(self):
         return len(self.images)
@@ -67,7 +68,6 @@ def load_data(path, batch_size, train_size=0.9):
     :param train_size: proportion of the dataset to include in the train set
     :return: (train_set, test_set, color_palette)
     """
-
     # load the dataset from raw file
     dataset = ImageDataset(path)
 
@@ -83,14 +83,14 @@ def load_data(path, batch_size, train_size=0.9):
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=8,
+        num_workers=0,
         pin_memory=True
     )
     test_set = DataLoader(
         test_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=8,
+        num_workers=0,
         pin_memory=True
     )
 

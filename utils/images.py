@@ -57,8 +57,8 @@ def _oht_to_rgb_numpy(image, palette):
 
 
 def _oht_to_rgb_torch(images, palette):
-    img_tensor = images.argmax(dim=-1).cpu()
-    return np.asarray(palette[img_tensor], dtype=np.uint8)
+    img_tensor = images.argmax(dim=-1)
+    return palette[img_tensor].cpu().numpy().astype(np.uint8)
 
 
 def convert_images_to_rgb(images, palette, library='numpy'):
@@ -74,7 +74,7 @@ def convert_images_to_rgb(images, palette, library='numpy'):
     return _oht_to_rgb_torch(images, palette)
 
 
-def decode_image_batch(image_batches: torch.Tensor, palette: np.ndarray) -> List[Image.Image]:
+def decode_image_batch(image_batches: torch.Tensor, palette: torch.Tensor) -> List[Image.Image]:
     out_imgs = []
 
     for batch_idx in range(image_batches.shape[0]):
