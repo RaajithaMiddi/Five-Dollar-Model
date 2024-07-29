@@ -12,8 +12,10 @@ class NumpyDataset(Dataset):
         labels = data["labels"]
 
         embeddings = data["embeddings"]
+
         if isinstance(embeddings, list):
-            embeddings = np.array(embeddings)
+            embeddings = np.asarray(embeddings)
+
         embeddings = embeddings * scaling_factor
         self.images = images
         self.labels = labels
@@ -28,8 +30,10 @@ class NumpyDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, idx):
-        img = self.images[idx]
-        return img, self.labels[idx], self.embeddings[idx]
+        img = torch.tensor(self.images[idx], dtype=torch.float32)
+        labels = self.labels[idx]
+        embeddings = torch.tensor(self.embeddings[idx], dtype=torch.float32)
+        return img, labels, embeddings
     
 def load_data(path, batch_size):
     dataset = NumpyDataset(path)
