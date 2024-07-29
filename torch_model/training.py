@@ -154,7 +154,7 @@ def _create_folders_if_not_exist(folder_path):
     :param folder_path: the folder and path to it
     """
     try:
-        os.makedirs(folder_path, exist_ok=False)
+        os.makedirs(folder_path, exist_ok=True)
         print(f"Directory '{folder_path}' created successfully or already exists.")
     except Exception as e:
         print(f"Error creating directory '{folder_path}': {e}")
