@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def generate_mixup(imgs, embeddings, n_mixups=1, lmbda=0.5):
     """
     Applies mixup by randomly picking another image and soft updating the image and embedding
