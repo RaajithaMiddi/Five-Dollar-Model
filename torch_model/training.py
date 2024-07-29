@@ -35,7 +35,7 @@ class GeneratorModule(nn.Module):
         images, embeddings = self.process_batch(batch)
         pred_out = self.generator(images, embeddings)
         true_classes = images.argmax(dim=-1)
-        loss = self.loss_fn(torch.log(pred_out), true_classes)
+        loss = self.loss_fn(torch.log(pred_out), true_classes.squeeze(1))
         # acc = torch.sum(true_classes == pred_out.max(1)).item() / true_classes.size(0)
         return loss  # , acc
 
@@ -62,7 +62,6 @@ def train(file_path, hyperparameters, device):
     batch_size = hyperparameters["batch_size"]
     lr = hyperparameters["learning_rate"]
 
-    # train_set, test_set, palette = load_data("datasets/sprite_gpt4aug.npy", batch_size)
     train_set, test_set, palette = load_data(file_path, batch_size)
 
     model = GeneratorModule(device, Generator(device), palette)
@@ -173,11 +172,9 @@ if __name__ == "__main__":
 
     create_directories()
 
-    file_path = "datasets/sprite_gpt4aug.npy"
+    # file_path = "datasets/sprite_gpt4aug.npy"
+    file_path = "datasets/data_train.npy"
 
-    hyperparameters = {"epochs": 100, "batch_size": 256, "learning_rate": 0.0005}
+    hyperparameters = {"epochs": 2, "batch_size": 256, "learning_rate": 0.0005}
 
-    epochs = 2
-    batch_size = 256
-    lr = 0.0005
     train(file_path, hyperparameters, device)
