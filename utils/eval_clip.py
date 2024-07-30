@@ -4,8 +4,17 @@ from transformers import CLIPModel, CLIPProcessor
 
 
 def get_clip_embeddings(images_oht, rgb_colors, labels):
-    clip_uri_name = "openai/clip-vit-base-patch32"
+    """
+    Use CLIP to get embeddings for images and labels in order to compare with
+    the five dollar model image results.
 
+    :param images_oht: one-hot encoded images
+    :param rgb_colors: RGB values of encoding
+    :param labels: list of labels
+    """
+
+    # Load CLIP model
+    clip_uri_name = "openai/clip-vit-base-patch32"
     CLIP_PROCESSOR = CLIPProcessor.from_pretrained(clip_uri_name)
     CLIP_MODEL = CLIPModel.from_pretrained(clip_uri_name)
 
