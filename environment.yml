@@ -13,3 +13,4 @@ dependencies:
   - scikit-learn==1.5.1
   - tensorflow==2.16.2
   - tqdm==4.66.4
+  - transformers==4.12.0
