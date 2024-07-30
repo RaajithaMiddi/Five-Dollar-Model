@@ -1,32 +1,31 @@
 import os
 
 import torch
-from load_data import load_data
-from PIL import Image
 from torch import nn, optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
-from visualization import plot_loss_acc
+from utils.images import decode_image_batch, image_grid
 
+from load_data import load_data
 from torch_model import Generator
-from utils import decode_image_batch, image_grid
+from visualization import plot_loss_acc
 
 
 class GeneratorModule(nn.Module):
     def __init__(
-        self, device: torch.device, generator: Generator, palette: Image.Image
+            self, device: torch.device, generator: Generator, palette: torch.Tensor
     ):
         super().__init__()
         self.device = device
         self.generator = generator.to(device)
         self.loss_fn = torch.nn.NLLLoss()
         self.results_table = None
-        self.palette = palette
+        self.palette = palette.to(device)
 
     # have to generate embeddings here as otherwise we cannot run the sentence transformer
     # on the GPU
     def process_batch(self, batch):
-        images, captions, embeddings = batch
+        images, embeddings = batch
         embeddings = embeddings.to(self.device)
         images = images.to(self.device)
         return images, embeddings
@@ -35,6 +34,9 @@ class GeneratorModule(nn.Module):
         images, embeddings = self.process_batch(batch)
         pred_out = self.generator(images, embeddings)
         true_classes = images.argmax(dim=-1)
+        # print(f'pred_out shape: {pred_out.shape}')
+        # print(f'true_classes shape: {true_classes.shape}')
+
         loss = self.loss_fn(torch.log(pred_out), true_classes)
         # acc = torch.sum(true_classes == pred_out.max(1)).item() / true_classes.size(0)
         return loss  # , acc
@@ -51,26 +53,35 @@ class GeneratorModule(nn.Module):
         image_classes = images.argmax(dim=-1)
         loss = self.loss_fn(torch.log(pred_out), image_classes)
         # acc = torch.sum(pred_out == image_classes).item() / len(image_classes)
-        if os.path.exists("debug_images") is False:
-            os.makedirs("debug_images")
+
         results_grid.save(os.path.join("debug_images", f"results_epoch_{epoch}.png"))
         return loss  # , acc
 
 
 def train(file_path, hyperparameters, device):
+    """
+    Run the training loop
+    :param file_path: path to data file
+    :param hyperparameters: dictionary of hyperparameters
+    :param device: torch device
+    """
+
+    # unpack hyperparameters for the model to use
     epochs = hyperparameters["epochs"]
     batch_size = hyperparameters["batch_size"]
     lr = hyperparameters["learning_rate"]
 
-    # train_set, test_set, palette = load_data("datasets/sprite_gpt4aug.npy", batch_size)
+    # generate batch tensors via TensorDataset and Dataloader
     train_set, test_set, palette = load_data(file_path, batch_size)
 
+    # use a model wrapper here; technically not a generator
     model = GeneratorModule(device, Generator(device), palette)
 
     train_loss = []
-    train_acc = []
     eval_loss = []
-    val_acc = []
+
+    # train_acc = []
+    # val_acc = []
 
     model.to(device)
 
@@ -123,9 +134,14 @@ def train(file_path, hyperparameters, device):
 
 
 def _check_cuda_memory(device_id):
-    return torch.cuda.get_device_properties(
-        device_id
-    ).total_memory - torch.cuda.memory_allocated(device_id)
+    """
+    Given a cuda device number, return free memory
+    :param device_id: an integer that maps to which cuda gpu
+    :return: memory available in bytes
+    """
+    memory_total = torch.cuda.get_device_properties(device_id).total_memory
+    memory_allocated = torch.cuda.memory_allocated(device_id)
+    return memory_total - memory_allocated
 
 
 def select_best_device(device=None):
@@ -133,18 +149,22 @@ def select_best_device(device=None):
     Pick the best device in this order: cuda, mps (apple), cpu
     :return: torch device to use
     """
+
+    # override the logic if we pass in a device
     if device:
         return torch.device(device)
 
+    # pick the best gpu, if it's available
     if torch.cuda.is_available():
-        best_gpu = max(
-            range(torch.cuda.device_count()), key=lambda i: _check_cuda_memory(i)
-        )
+        num_gpus = torch.cuda.device_count()
+        best_gpu = max(range(num_gpus), key=lambda i: _check_cuda_memory(i))
         return torch.device(f"cuda:{best_gpu}")
 
+    # pick apple mps next, if it's available
     if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         return torch.device("mps")
 
+    # return cpu as a last resort
     return torch.device("cpu")
 
 
@@ -174,10 +194,12 @@ if __name__ == "__main__":
     create_directories()
 
     file_path = "datasets/sprite_gpt4aug.npy"
+    # file_path = "datasets/data_train.npy"
 
-    hyperparameters = {"epochs": 100, "batch_size": 256, "learning_rate": 0.0005}
+    hyperparameters = {
+        "epochs": 100,
+        "batch_size": 256,
+        "learning_rate": 0.0005
+    }
 
-    epochs = 2
-    batch_size = 256
-    lr = 0.0005
     train(file_path, hyperparameters, device)
