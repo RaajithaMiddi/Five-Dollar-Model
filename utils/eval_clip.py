@@ -18,7 +18,7 @@ def get_clip_embeddings(images_oht, rgb_colors, labels):
     CLIP_PROCESSOR = CLIPProcessor.from_pretrained(clip_uri_name)
     CLIP_MODEL = CLIPModel.from_pretrained(clip_uri_name)
 
-    rgb_images = images.convert_images_to_rgb(images_oht[:5], rgb_colors)
+    rgb_images = images.convert_images_to_rgb(images_oht, rgb_colors)
 
     PRE_PROMPT = "a pixelated, pixel-art image of "
     annotated_labels = [PRE_PROMPT + l for l in labels]
