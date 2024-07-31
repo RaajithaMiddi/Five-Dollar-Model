@@ -5,7 +5,7 @@ from torch import nn
 
 class ResidualBlock(nn.Module):
     def __init__(
-        self, kernel_size: int = 7, num_filters: int = 128, upsampling=False
+        self, kernel_size: int = 7, num_filters: int = 128, upsampling=True
     ) -> None:
         super(ResidualBlock, self).__init__()
         self.upsampling = upsampling
@@ -56,7 +56,7 @@ class Generator(nn.Module):
             ]
         )
         self.pad = nn.ZeroPad2d(1)
-        out_conv_kernel = 9
+        out_conv_kernel = 1
         self.out_conv = nn.Conv2d(
             in_channels=self.num_filters, out_channels=16, kernel_size=out_conv_kernel
         )

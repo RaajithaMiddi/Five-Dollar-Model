@@ -31,6 +31,8 @@ class GeneratorModule(nn.Module):
         return images, embeddings
 
     def training_step(self, batch):
+        self.generator.train()
+
         images, embeddings = self.process_batch(batch)
         pred_out = self.generator(images, embeddings)
         true_classes = images.argmax(dim=-1)
@@ -42,23 +44,27 @@ class GeneratorModule(nn.Module):
         return loss  # , acc
 
     def eval_step(self, batch, epoch: int):
-        images, embeddings = self.process_batch(batch)
-        input_images = decode_image_batch(images, self.palette)
+        self.generator.eval()
 
-        pred_out = self.generator(images, embeddings)
+        with torch.no_grad():
+            images, embeddings = self.process_batch(batch)
+            pred_out = self.generator(images, embeddings)
+            image_classes = images.argmax(dim=-1)
+            loss = self.loss_fn(torch.log(pred_out), image_classes)
+
         preds_for_decode = pred_out.permute(0, 2, 3, 1)
         pred_images = decode_image_batch(preds_for_decode, self.palette)
 
+        input_images = decode_image_batch(images, self.palette)
         results_grid = image_grid([input_images, pred_images])
-        image_classes = images.argmax(dim=-1)
-        loss = self.loss_fn(torch.log(pred_out), image_classes)
+
         # acc = torch.sum(pred_out == image_classes).item() / len(image_classes)
 
         results_grid.save(os.path.join("debug_images", f"results_epoch_{epoch}.png"))
         return loss  # , acc
 
 
-def train(file_path, hyperparameters, device):
+def train(file_path, hyperparameters, device, eval_every=1):
     """
     Run the training loop
     :param file_path: path to data file
@@ -77,8 +83,8 @@ def train(file_path, hyperparameters, device):
     # use a model wrapper here; technically not a generator
     model = GeneratorModule(device, Generator(device), palette)
 
-    train_loss = []
-    eval_loss = []
+    loss_train = []
+    loss_val = []
 
     # train_acc = []
     # val_acc = []
@@ -88,17 +94,18 @@ def train(file_path, hyperparameters, device):
     optimizer = optim.Adam(model.parameters(), lr)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=0)
     for epoch in tqdm(range(epochs), desc="Training on epoch"):
+        print()
 
-        batch_loss = 0
-        acc_total = 0
+        epoch_loss_train = 0
+
         for j, batch in enumerate(train_set):
             optimizer.zero_grad()
 
-            loss = model.training_step(batch)
-            batch_loss += loss.item()
+            batch_loss_train = model.training_step(batch)
+            epoch_loss_train += batch_loss_train.item()
             # acc_total += acc
 
-            loss.backward()
+            batch_loss_train.backward()
             grads = [
                 param.grad.detach().flatten()
                 for param in model.parameters()
@@ -109,28 +116,31 @@ def train(file_path, hyperparameters, device):
 
             print(
                 "Epoch {:03.0f}, batch {:02.0f}, loss {:.2f}, total norm: {:.2f}, learning rate: {:.8f}".format(
-                    epoch, j, loss.item(), total_norm, learning_rate
+                    epoch, j, batch_loss_train.item(), total_norm, learning_rate
                 )
             )
             optimizer.step()
             scheduler.step()
 
-        train_loss.append(
-            batch_loss / len(train_set)
-        )  # should be len training set / batch_size)
-        # train_acc.append(acc_total / len(train_set))
+        # should be len training set / batch_size)
+        avg_epoch_loss_train = epoch_loss_train / len(train_set)
+        loss_train.append(avg_epoch_loss_train)
 
-        eval_every = 1
         if epoch % eval_every == 0:
+            epoch_loss_val = 0
+
             for j, batch in enumerate(test_set):
-                val_loss = model.eval_step(batch, epoch)
-                eval_loss.append(val_loss.item())
+                batch_loss_val = model.eval_step(batch, epoch)
+                epoch_loss_val += batch_loss_val.item()
+
                 # val_acc.append(val_acc)
-                print(f"Validation loss: {val_loss.item()}")
-                break
+                print(f"Validation loss: {batch_loss_val.item()}")
+            avg_epoch_loss_val = epoch_loss_val / len(test_set)
+            loss_val.append(avg_epoch_loss_val)
+
 
     torch.save(model.state_dict(), "five_dollar_model.pt")
-    plot_loss_acc(train_loss, eval_loss)
+    plot_loss_acc(loss_train, loss_val)
 
 
 def _check_cuda_memory(device_id):
@@ -193,8 +203,8 @@ if __name__ == "__main__":
 
     create_directories()
 
-    file_path = "datasets/sprite_gpt4aug.npy"
-    # file_path = "datasets/data_train.npy"
+    # file_path = "datasets/sprite_gpt4aug.npy"
+    file_path = "datasets/data_train.npy"
 
     hyperparameters = {
         "epochs": 100,
