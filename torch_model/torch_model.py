@@ -73,4 +73,5 @@ class DollarModel(nn.Module):
         x = self.residual_blocks(x)
         x = self.out_conv(x)
 
-        return self.softmax(x)
+        # return self.softmax(x)
+        return x

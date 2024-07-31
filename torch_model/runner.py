@@ -87,6 +87,7 @@ def train(file_path, hyperparameters, device, eval_every=1):
     # use a model wrapper here; technically not a generator
     model = DollarModel(device).to(device)
     loss_fn = torch.nn.CrossEntropyLoss()
+    # loss_fn = torch.nn.NLLLoss()
     optimizer = optim.Adam(model.parameters(), lr)
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=0)
 
@@ -130,7 +131,7 @@ def train(file_path, hyperparameters, device, eval_every=1):
             loss_val.append(avg_epoch_loss_val)
 
         tqdm.write(
-            f"\nEpoch {epoch}/{epochs}: Learning Rate: {learning_rate:.6f} Avg Training Loss: "
+            f"\nEpoch {epoch + 1}/{epochs}: Learning Rate: {learning_rate:.6f} Avg Training Loss: "
             f"{avg_epoch_loss_train:.6f} Avg. Validation Loss: {avg_epoch_loss_val:.6f}"
         )
 
