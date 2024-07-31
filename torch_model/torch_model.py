@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch import nn
 
@@ -27,7 +28,7 @@ class ResidualBlock(nn.Module):
         return residual + x
 
 
-class Generator(nn.Module):
+class DollarModel(nn.Module):
     def __init__(
         self,
         device: torch.device,
@@ -66,11 +67,40 @@ class Generator(nn.Module):
         batch_size = image.shape[0]
         noise = torch.randn((batch_size, self.noise_emb_size)).to(self.device)
         input_emb = torch.cat([noise, caption_enc], 1).to(self.device)
+
+        if torch.isnan(input_emb).any() > 0:
+            print(f"input_emb shape: {input_emb.shape}")
+            print(f"input_emb values: {input_emb}")
+
         x = self.reshape_layer(input_emb)
+
+        if torch.isnan(x).any() > 0:
+            print(f"x shape after reshape_layer: {x.shape}")
+            print(f"x values after reshape_layer: {x}")
+
         x = x.view(-1, self.num_filters, self.conv_kernel_size, self.conv_kernel_size)
+
+        if torch.isnan(x).any() > 0:
+            print(f"x shape after view: {x.shape}")
+            print(f"x values after view: {x}")
+
         x = self.residual_blocks(x)
+
+        if torch.isnan(x).any() > 0:
+            print(f"x shape after residual_blocks: {x.shape}")
+            print(f"x values after residual_blocks: {x}")
+
         x = self.out_conv(x)
-        return self.softmax(x)
+
+        if torch.isnan(x).any() > 0:
+            print(f"x shape after out_conv: {x.shape}")
+            print(f"x values after out_conv: {x}")
+        output = self.softmax(x)
+
+        if torch.isnan(output).any() > 0:
+            print(f"output shape: {output.shape}")
+            print(f"output values: {output}")
+        return output
 
 
 # class ResidualBlock(nn.Module):
