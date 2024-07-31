@@ -79,7 +79,7 @@ def train(file_path, hyperparameters, device, eval_every=1):
 
     # generate batch tensors via TensorDataset and Dataloader
     train_set, test_set, palette = load_data(file_path, batch_size)
-    print(len(train_set))
+
     # use a model wrapper here; technically not a generator
     model = GeneratorModule(device, Generator(device), palette)
 
