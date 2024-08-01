@@ -5,11 +5,11 @@ import torch
 from torch import nn, optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
-from utils.images import decode_image_batch, image_grid
 
-from load_data import load_data
-from torch_model import DollarModel
-from visualization import plot_loss_acc
+from torch_model.load_data import load_data
+from torch_model.torch_model import DollarModel
+from torch_model.visualization import plot_loss_acc
+from utils.images import decode_image_batch, image_grid
 
 
 def _train(images, embeddings, model, optimizer, loss_fn):
@@ -43,7 +43,11 @@ def _eval(images, embeddings, model, loss_fn):
 
 def _print_training_info(batch_num, loss, model, scheduler):
     # concatenate gradients for analysis
-    gradients = [param.grad.detach().flatten() for param in model.parameters() if param.grad is not None]
+    gradients = [
+        param.grad.detach().flatten()
+        for param in model.parameters()
+        if param.grad is not None
+    ]
 
     for gradient in gradients:
         if torch.isnan(gradient).any():
@@ -51,7 +55,9 @@ def _print_training_info(batch_num, loss, model, scheduler):
 
     total_norm = torch.cat(gradients).norm().item()
 
-    print(f"\tbatch (train) {batch_num:02.0f}, loss {loss:.2f}, total norm: {total_norm:.2f}")
+    print(
+        f"\tbatch (train) {batch_num:02.0f}, loss {loss:.2f}, total norm: {total_norm:.2f}"
+    )
 
 
 def _process_batch(batch, device):
@@ -66,6 +72,7 @@ def _save_results(images_pred, test_images, palette, epoch):
     results_grid = image_grid([images_true, images_pred])
 
     results_grid.save(os.path.join("debug_images", f"results_epoch_{epoch}.png"))
+
 
 def train(file_path, hyperparameters, device, eval_every=1):
     """
@@ -105,10 +112,12 @@ def train(file_path, hyperparameters, device, eval_every=1):
             train_images, train_embeddings = _process_batch(batch, device)
 
             # TRAIN the model and accumulate loss
-            batch_loss_train = _train(train_images, train_embeddings, model, optimizer, loss_fn)
+            batch_loss_train = _train(
+                train_images, train_embeddings, model, optimizer, loss_fn
+            )
             epoch_loss_train += batch_loss_train
 
-            _print_training_info(i, batch_loss_train, model, scheduler)
+            # _print_training_info(i, batch_loss_train, model, scheduler)
 
         # average loss over the number of batches
         avg_epoch_loss_train = epoch_loss_train / len(loader_train)
@@ -119,7 +128,9 @@ def train(file_path, hyperparameters, device, eval_every=1):
             for i, batch in enumerate(loader_test):
                 # evaluate performance on out-of-sample batches and accumulate the loss
                 test_images, test_embeddings = _process_batch(batch, device)
-                images_pred, batch_loss_val = _eval(test_images, test_embeddings, model, loss_fn)
+                images_pred, batch_loss_val = _eval(
+                    test_images, test_embeddings, model, loss_fn
+                )
 
                 epoch_loss_val += batch_loss_val
                 print(f"\tbatch (val) {i:02.0f}, validation loss {batch_loss_val:.2f}")

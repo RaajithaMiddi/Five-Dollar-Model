@@ -1,6 +1,6 @@
 import os
-import torch
 
+import torch
 from runner import train
 
 
@@ -67,10 +67,6 @@ if __name__ == "__main__":
     # file_path = "datasets/sprite_gpt4aug.npy"
     file_path = "datasets/data_train.npy"
 
-    hyperparameters = {
-        "epochs": 100,
-        "batch_size": 256,
-        "learning_rate": 0.0005
-    }
+    hyperparameters = {"epochs": 100, "batch_size": 256, "learning_rate": 0.0005}
 
     train(file_path, hyperparameters, device)
