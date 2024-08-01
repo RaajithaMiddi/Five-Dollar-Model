@@ -117,7 +117,7 @@ def train(file_path, hyperparameters, device, eval_every=1):
             )
             epoch_loss_train += batch_loss_train
 
-            # _print_training_info(i, batch_loss_train, model, scheduler)
+            _print_training_info(i, batch_loss_train, model, scheduler)
 
         # average loss over the number of batches
         avg_epoch_loss_train = epoch_loss_train / len(loader_train)
