@@ -2,13 +2,13 @@ import os
 
 import numpy as np
 import torch
-from load_data import load_data
 from torch import nn, optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
-from visualization import plot_loss_acc
 
-from torch_model import DollarModel
+from torch_model.load_data import load_data
+from torch_model.torch_model import DollarModel
+from torch_model.visualization import plot_loss_acc
 from utils.images import decode_image_batch, image_grid
 
 
@@ -65,16 +65,17 @@ def _process_batch(batch, device):
     return images.to(device), embeddings.to(device)
 
 
-def _save_results(images_pred, test_images, palette, epoch):
+def _save_results(images_pred, test_images, palette, epoch, results_directory):
     preds_for_decode = images_pred.permute(0, 2, 3, 1)
     images_pred = decode_image_batch(preds_for_decode, palette)
     images_true = decode_image_batch(test_images, palette)
     results_grid = image_grid([images_true, images_pred])
 
-    results_grid.save(os.path.join("debug_images", f"results_epoch_{epoch}.png"))
+    res_dir = os.path.join(results_directory, "debug_images")
+    results_grid.save(os.path.join(res_dir, f"results_epoch_{epoch}.png"))
 
 
-def train(file_path, hyperparameters, device, eval_every=1):
+def train(file_path, hyperparameters, device, results_directory, eval_every=1):
     """
     Run the training loop
     :param file_path: path to data file
@@ -117,7 +118,7 @@ def train(file_path, hyperparameters, device, eval_every=1):
             )
             epoch_loss_train += batch_loss_train
 
-            _print_training_info(i, batch_loss_train, model, scheduler)
+            # _print_training_info(i, batch_loss_train, model, scheduler)
 
         # average loss over the number of batches
         avg_epoch_loss_train = epoch_loss_train / len(loader_train)
@@ -135,7 +136,9 @@ def train(file_path, hyperparameters, device, eval_every=1):
                 epoch_loss_val += batch_loss_val
                 print(f"\tbatch (val) {i:02.0f}, validation loss {batch_loss_val:.2f}")
 
-                _save_results(images_pred, test_images, palette, epoch)
+                _save_results(
+                    images_pred, test_images, palette, epoch, results_directory
+                )
 
             # compute the average epoch loss
             avg_epoch_loss_val = epoch_loss_val / len(loader_test)
@@ -143,11 +146,18 @@ def train(file_path, hyperparameters, device, eval_every=1):
 
         tqdm.write(
             f"\nEpoch {epoch + 1}/{epochs}: Learning Rate: {learning_rate:.6f} Avg Training Loss: "
+            # f"\nEpoch {epoch + 1}/{epochs}: Learning Rate: {lr:.6f} Avg Training Loss: "
             f"{avg_epoch_loss_train:.6f} Avg. Validation Loss: {avg_epoch_loss_val:.6f}"
         )
 
-        # increment scheduler at the epoch level
-        scheduler.step()
+        if epoch > 80 and epoch % 5 == 0:
+            # increment scheduler at the epoch level
+            scheduler.step()
 
-    torch.save(model.state_dict(), "five_dollar_model.pt")
-    plot_loss_acc(loss_train, loss_val)
+    torch.save(
+        model.state_dict(),
+        os.path.join(
+            results_directory, "word2sprite_model_resblocks_{model.num_res_blocks}.pt"
+        ),
+    )
+    plot_loss_acc(loss_train, loss_val, results_directory)

@@ -16,9 +16,9 @@ class ResidualBlock(nn.Module):
             nn.ReLU(),
             nn.BatchNorm2d(num_filters),
             nn.Dropout(0.7),  # add dropout for generalization
-            # nn.Conv2d(num_filters, num_filters, kernel_size=kernel_size, padding=3),
-            # nn.ReLU(),
-            # nn.BatchNorm2d(num_filters),
+            nn.Conv2d(num_filters, num_filters, kernel_size=kernel_size, padding=3),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_filters),
             # nn.Dropout(0.7),  # add dropout for generalization
         )
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
@@ -52,6 +52,7 @@ class DollarModel(nn.Module):
         self.num_filters = num_filters
         self.device = device
         self.conv_kernel_size = conv_size
+        self.num_res_blocks = num_residual_blocks
 
         self.reshape_layer = nn.Linear(
             noise_emb_size + self.text_emb_size,
