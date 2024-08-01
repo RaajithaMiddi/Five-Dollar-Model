@@ -1,4 +1,6 @@
 dollarmodel_out/
+loss_graph_results/
+debug_images/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
