@@ -2,13 +2,13 @@ import os
 
 import numpy as np
 import torch
+from load_data import load_data
 from torch import nn, optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
+from visualization import plot_loss_acc
 
-from torch_model.load_data import load_data
-from torch_model.torch_model import DollarModel
-from torch_model.visualization import plot_loss_acc
+from torch_model import DollarModel
 from utils.images import decode_image_batch, image_grid
 
 
